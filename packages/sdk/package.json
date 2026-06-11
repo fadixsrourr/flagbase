@@ -1,0 +1,34 @@
+{
+  "name": "flagbase-js",
+  "version": "0.1.0",
+  "description": "Self-hosted feature flag SDK powered by Firebase",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist"
+  },
+  "keywords": ["feature-flags", "firebase", "feature-toggles", "launchdarkly-alternative"],
+  "license": "MIT",
+  "dependencies": {
+    "@flagbase/types": "workspace:*",
+    "firebase": "^11.3.1"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.6",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.9"
+  }
+}

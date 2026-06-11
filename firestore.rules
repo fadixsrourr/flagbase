@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper: check if the user owns the project
+    function isProjectOwner(projectId) {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId == request.auth.uid;
+    }
+
+    // Projects: owner read/write only
+    match /projects/{projectId} {
+      allow read, write: if isProjectOwner(projectId);
+
+      // Environments: project owner only
+      match /environments/{environmentKey} {
+        allow read, write: if isProjectOwner(projectId);
+
+        // Flags: project owner can CRUD
+        match /flags/{flagId} {
+          allow read, write: if isProjectOwner(projectId);
+
+          // Audit log: project owner can read, nobody can write directly (Cloud Functions only)
+          match /audit/{auditId} {
+            allow read: if isProjectOwner(projectId);
+            allow write: if false;
+          }
+        }
+      }
+    }
+  }
+}
