@@ -7,7 +7,7 @@ Self-hosted feature flag system powered by Firebase. A free, open-source alterna
 ```
 flagbase/
 ├── apps/
-│   ├── dashboard/        # Next.js 15 admin UI
+│   ├── dashboard/        # Next.js 16 admin UI
 │   └── functions/        # Firebase Cloud Functions (REST API)
 ├── packages/
 │   ├── sdk/              # flagbase-js — npm SDK (framework-agnostic)
