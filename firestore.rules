@@ -17,13 +17,19 @@ service cloud.firestore {
     match /projects/{projectId} {
       allow read, write: if isProjectOwner(projectId);
 
-      // Environments: project owner only
+      // Environments: project owner only. The apiKey lives here, so this doc
+      // must never be world-readable.
       match /environments/{environmentKey} {
         allow read, write: if isProjectOwner(projectId);
 
-        // Flags: project owner can CRUD
+        // Flags: read is PUBLIC by design. The client SDK evaluates flags in the
+        // browser via an unauthenticated onSnapshot, so the flag config is shipped
+        // to clients anyway (same model as client-side LaunchDarkly). The project
+        // id is an unguessable Firestore id and is embedded in the consumer app.
+        // Writes stay owner-only; mutations go through the server API (Admin SDK).
         match /flags/{flagId} {
-          allow read, write: if isProjectOwner(projectId);
+          allow read: if true;
+          allow write: if isProjectOwner(projectId);
 
           // Audit log: project owner can read, nobody can write directly (server API routes only, via Admin SDK)
           match /audit/{auditId} {
