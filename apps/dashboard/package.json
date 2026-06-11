@@ -10,21 +10,23 @@
     "clean": "rm -rf .next"
   },
   "dependencies": {
-    "@flagbase/types": "workspace:*",
-    "flagbase-js": "workspace:*",
     "@flagbase/react": "workspace:*",
+    "@flagbase/types": "workspace:*",
+    "firebase": "^11.3.1",
+    "firebase-admin": "^14.0.0",
+    "flagbase-js": "workspace:*",
     "next": "^16.2.9",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "firebase": "^11.3.1"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/node": "^22.12.0",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
-    "typescript": "^5.7.3",
-    "tailwindcss": "^3.4.17",
+    "autoprefixer": "^10.4.20",
     "postcss": "^8.5.2",
-    "autoprefixer": "^10.4.20"
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.3"
   }
 }

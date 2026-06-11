@@ -25,7 +25,7 @@ service cloud.firestore {
         match /flags/{flagId} {
           allow read, write: if isProjectOwner(projectId);
 
-          // Audit log: project owner can read, nobody can write directly (Cloud Functions only)
+          // Audit log: project owner can read, nobody can write directly (server API routes only, via Admin SDK)
           match /audit/{auditId} {
             allow read: if isProjectOwner(projectId);
             allow write: if false;

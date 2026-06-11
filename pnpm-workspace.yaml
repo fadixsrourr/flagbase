@@ -2,10 +2,10 @@ packages:
   - "apps/*"
   - "packages/*"
 allowBuilds:
-  '@firebase/util': set this to true or false
-  esbuild: set this to true or false
-  protobufjs: set this to true or false
-  sharp: set this to true or false
+  '@firebase/util': true
+  esbuild: true
+  protobufjs: true
+  sharp: true
 minimumReleaseAgeExclude:
   - '@turbo/darwin-64@2.9.18'
   - '@turbo/darwin-arm64@2.9.18'

@@ -92,6 +92,12 @@ export const ProjectSchema = z.object({
 })
 export type Project = z.infer<typeof ProjectSchema>
 
+export const CreateProjectSchema = z.object({
+  name: z.string().min(1),
+  slug: z.string().regex(/^[a-z0-9-]+$/, 'Slug must be lowercase alphanumeric with -'),
+})
+export type CreateProjectInput = z.infer<typeof CreateProjectSchema>
+
 // ─── Audit log ──────────────────────────────────────────────────────────────
 
 export const AuditActionSchema = z.enum([
