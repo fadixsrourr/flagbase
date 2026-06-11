@@ -12,12 +12,17 @@
   "dependencies": {
     "@flagbase/react": "workspace:*",
     "@flagbase/types": "workspace:*",
+    "@hookform/resolvers": "^5.4.0",
+    "@phosphor-icons/react": "^2.1.10",
+    "clsx": "^2.1.1",
     "firebase": "^11.3.1",
     "firebase-admin": "^14.0.0",
     "flagbase-js": "workspace:*",
     "next": "^16.2.9",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-hook-form": "^7.78.0",
+    "tailwind-merge": "^3.6.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

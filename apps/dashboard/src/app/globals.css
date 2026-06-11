@@ -1,3 +1,78 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * Carbon & Signal design tokens.
+ * Dark-locked: the whole product runs one theme (no per-section inversion).
+ * Channels are space-separated RGB so Tailwind's /opacity syntax works.
+ */
+:root {
+  --carbon: 12 13 15; /* page background — cool near-black, not slate */
+  --surface: 20 21 24; /* panels */
+  --surface-raised: 27 29 33; /* inputs, elevated controls */
+  --surface-hover: 35 37 41;
+
+  --line: 41 43 49; /* hairline borders */
+  --line-strong: 57 60 68;
+
+  --text: 236 236 238; /* off-white, never pure */
+  --text-muted: 154 156 164;
+  --text-faint: 107 110 119;
+
+  --accent: 242 169 59; /* signal amber — the one locked accent */
+  --accent-bright: 255 190 79;
+  --accent-ink: 26 18 6; /* readable text on amber */
+
+  --danger: 242 95 90;
+  --danger-ink: 28 10 10;
+
+  color-scheme: dark;
+}
+
+@layer base {
+  * {
+    @apply border-line;
+  }
+
+  body {
+    @apply bg-carbon text-content antialiased;
+    font-feature-settings: 'ss01', 'cv01', 'tnum';
+  }
+
+  /* Instrument-grid backdrop: fixed, non-interactive, cheap to paint. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgb(255 255 255 / 0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(255 255 255 / 0.015) 1px, transparent 1px);
+    background-size: 56px 56px;
+    -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 80%);
+    mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 80%);
+  }
+
+  ::selection {
+    background: rgb(var(--accent) / 0.28);
+    color: rgb(var(--text));
+  }
+
+  /* Keyboard focus only — amber ring, consistent across controls. */
+  :focus-visible {
+    outline: none;
+    @apply shadow-accent-focus;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
