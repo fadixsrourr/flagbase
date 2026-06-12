@@ -24,6 +24,18 @@ const sizes: Record<Size, string> = {
   md: 'h-11 px-5 text-sm gap-2',
 }
 
+export function buttonClasses(variant: Variant = 'primary', size: Size = 'md', className?: string) {
+  return cn(
+    'inline-flex items-center justify-center rounded-control whitespace-nowrap',
+    'transition-[background-color,border-color,color,transform] duration-200',
+    'active:translate-y-px disabled:pointer-events-none disabled:opacity-55',
+    'cursor-pointer',
+    variants[variant],
+    sizes[size],
+    className
+  )
+}
+
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   { className, variant = 'primary', size = 'md', loading = false, disabled, children, ...props },
   ref
@@ -32,15 +44,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     <button
       ref={ref}
       disabled={disabled ?? loading}
-      className={cn(
-        'inline-flex items-center justify-center rounded-control whitespace-nowrap',
-        'transition-[background-color,border-color,color,transform] duration-200',
-        'active:translate-y-px disabled:pointer-events-none disabled:opacity-55',
-        'cursor-pointer',
-        variants[variant],
-        sizes[size],
-        className
-      )}
+      className={buttonClasses(variant, size, className)}
       {...props}
     >
       {loading && <CircleNotch weight="bold" className="size-4 animate-spin" aria-hidden />}
