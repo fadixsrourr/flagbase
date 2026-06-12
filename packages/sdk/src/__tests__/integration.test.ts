@@ -17,7 +17,7 @@ import { FlagbaseClient } from '../client'
  * RUN_INTEGRATION=1 (and never in CI), so the normal unit suite stays offline.
  *
  * Run it manually with:
- *   RUN_INTEGRATION=1 pnpm --filter flagbase-js exec vitest run integration
+ *   RUN_INTEGRATION=1 pnpm --filter flagbase-sdk exec vitest run integration
  */
 
 function loadDashboardEnv(): void {

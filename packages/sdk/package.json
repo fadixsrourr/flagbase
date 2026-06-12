@@ -1,5 +1,5 @@
 {
-  "name": "flagbase-js",
+  "name": "flagbase-sdk",
   "version": "0.1.0",
   "description": "Self-hosted feature flag SDK powered by Firebase",
   "main": "./dist/index.js",
@@ -12,13 +12,14 @@
       "types": "./dist/index.d.ts"
     }
   },
+  "sideEffects": false,
   "files": [
     "dist",
     "README.md"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts",
-    "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
+    "build": "tsup",
+    "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",
     "clean": "rm -rf dist"
@@ -30,11 +31,19 @@
     "launchdarkly-alternative"
   ],
   "license": "MIT",
-  "dependencies": {
-    "@flagbase/types": "workspace:*",
-    "firebase": "^11.3.1"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fadixsrourr/flagbase.git",
+    "directory": "packages/sdk"
+  },
+  "homepage": "https://github.com/fadixsrourr/flagbase#readme",
+  "bugs": "https://github.com/fadixsrourr/flagbase/issues",
+  "peerDependencies": {
+    "firebase": ">=11"
   },
   "devDependencies": {
+    "@flagbase/types": "workspace:*",
+    "firebase": "^11.3.1",
     "firebase-admin": "^14.0.0",
     "tsup": "^8.3.6",
     "typescript": "^5.7.3",

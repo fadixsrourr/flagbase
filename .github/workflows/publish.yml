@@ -1,0 +1,35 @@
+name: Publish
+
+# Trigger a release by tagging: git tag sdk-v0.1.0 && git push --tags
+on:
+  push:
+    tags: ['sdk-v*']
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter @flagbase/types build
+      - run: pnpm --filter flagbase-sdk build
+      - run: pnpm --filter flagbase-react build
+
+      # flagbase-sdk must publish first — flagbase-react depends on it.
+      - name: Publish flagbase-sdk
+        run: pnpm --filter flagbase-sdk publish --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish flagbase-react
+        run: pnpm --filter flagbase-react publish --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

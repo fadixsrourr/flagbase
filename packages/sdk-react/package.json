@@ -1,5 +1,5 @@
 {
-  "name": "@flagbase/react",
+  "name": "flagbase-react",
   "version": "0.1.0",
   "description": "React hooks for FlagBase feature flags",
   "main": "./dist/index.js",
@@ -12,21 +12,37 @@
       "types": "./dist/index.d.ts"
     }
   },
+  "sideEffects": false,
   "files": ["dist", "README.md"],
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts",
-    "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
+    "build": "tsup",
+    "dev": "tsup --watch",
     "clean": "rm -rf dist"
   },
+  "keywords": [
+    "feature-flags",
+    "firebase",
+    "react",
+    "react-hooks",
+    "feature-toggles"
+  ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fadixsrourr/flagbase.git",
+    "directory": "packages/sdk-react"
+  },
+  "homepage": "https://github.com/fadixsrourr/flagbase#readme",
+  "bugs": "https://github.com/fadixsrourr/flagbase/issues",
   "peerDependencies": {
-    "react": ">=18.0.0"
+    "react": ">=18",
+    "firebase": ">=11"
   },
   "dependencies": {
-    "@flagbase/types": "workspace:*",
-    "flagbase-js": "workspace:*"
+    "flagbase-sdk": "workspace:*"
   },
   "devDependencies": {
+    "@flagbase/types": "workspace:*",
     "@types/react": "^18.3.18",
     "react": "^18.3.1",
     "tsup": "^8.3.6",

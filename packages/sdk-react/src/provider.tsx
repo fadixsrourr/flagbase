@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { FlagbaseClient } from 'flagbase-js'
+import { FlagbaseClient } from 'flagbase-sdk'
 import type { FlagbaseConfig } from '@flagbase/types'
 
 interface FlagbaseContextValue {

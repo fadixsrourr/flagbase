@@ -24,9 +24,6 @@ importers:
 
   apps/dashboard:
     dependencies:
-      '@flagbase/react':
-        specifier: workspace:*
-        version: link:../../packages/sdk-react
       '@flagbase/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -48,7 +45,10 @@ importers:
       firebase-admin:
         specifier: ^14.0.0
         version: 14.0.0
-      flagbase-js:
+      flagbase-react:
+        specifier: workspace:*
+        version: link:../../packages/sdk-react
+      flagbase-sdk:
         specifier: workspace:*
         version: link:../../packages/sdk
       next:
@@ -93,14 +93,13 @@ importers:
         version: 5.9.3
 
   packages/sdk:
-    dependencies:
+    devDependencies:
       '@flagbase/types':
         specifier: workspace:*
         version: link:../types
       firebase:
         specifier: ^11.3.1
         version: 11.10.0
-    devDependencies:
       firebase-admin:
         specifier: ^14.0.0
         version: 14.0.0
@@ -116,13 +115,16 @@ importers:
 
   packages/sdk-react:
     dependencies:
-      '@flagbase/types':
-        specifier: workspace:*
-        version: link:../types
-      flagbase-js:
+      firebase:
+        specifier: '>=11'
+        version: 12.14.0
+      flagbase-sdk:
         specifier: workspace:*
         version: link:../sdk
     devDependencies:
+      '@flagbase/types':
+        specifier: workspace:*
+        version: link:../types
       '@types/react':
         specifier: ^18.3.18
         version: 18.3.31
