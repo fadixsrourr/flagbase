@@ -22,6 +22,10 @@ jobs:
           java-version: '17'
 
       - run: pnpm install --frozen-lockfile
+        env:
+          # Use isolated linker on Linux CI (hoisted is a Windows-only workaround for
+          # EPERM on symlinks). Isolated creates proper symlinks Turbopack resolves correctly.
+          npm_config_node_linker: isolated
 
       - name: Build shared types
         run: pnpm --filter @flagbase/types build
@@ -42,7 +46,9 @@ jobs:
 
       - name: Build dashboard
         working-directory: apps/dashboard
-        run: pnpm run build
+        run: |
+          ls ../../node_modules/clsx 2>/dev/null && echo "clsx: OK" || echo "clsx: MISSING"
+          pnpm run build
         env:
           NEXT_PUBLIC_FIREBASE_API_KEY: ci-placeholder
           NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ci.firebaseapp.com
