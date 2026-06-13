@@ -26,10 +26,11 @@ export function useFlag<T extends FlagValue = FlagValue>(
     // Get current value immediately
     setValue(client.get<T>(flagKey, context, defaultValue))
 
-    // Subscribe to future changes
+    // Subscribe to future changes — context is stored in the listener so every
+    // background onSnapshot re-evaluates against this user's attributes
     const unsubscribe = client.subscribe(flagKey, (newValue) => {
       setValue(newValue as T)
-    })
+    }, context)
 
     return unsubscribe
   }, [client, ready, flagKey, JSON.stringify(context)])

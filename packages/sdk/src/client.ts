@@ -1,12 +1,17 @@
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app'
 import {
   getFirestore,
+  connectFirestoreEmulator,
   doc,
   collection,
   onSnapshot,
   type Firestore,
   type Unsubscribe,
 } from 'firebase/firestore'
+
+// Tracks Firestore instances already wired to the emulator so we never call
+// connectFirestoreEmulator twice on the same instance (it throws if called again).
+const emulatorConnected = new WeakSet<Firestore>()
 import type { Flag, FlagbaseConfig, EvaluationContext, EvaluatedFlag, FlagValue } from '@flagbase/types'
 import { evaluateFlag } from './evaluator'
 
@@ -16,7 +21,7 @@ export class FlagbaseClient {
   private config: FlagbaseConfig
   private flags: Map<string, Flag> = new Map()
   private unsubscribers: Unsubscribe[] = []
-  private listeners: Map<string, Set<(value: FlagValue) => void>> = new Map()
+  private listeners: Map<string, Set<{ callback: (value: FlagValue) => void; context: EvaluationContext }>> = new Map()
   private ready = false
   private readyPromise: Promise<void>
   private resolveReady!: () => void
@@ -32,6 +37,16 @@ export class FlagbaseClient {
     this.readyPromise = new Promise((resolve) => {
       this.resolveReady = resolve
     })
+
+    // Redirect to the local Firestore Emulator when FIRESTORE_EMULATOR_HOST is set.
+    // Use globalThis to avoid a Node.js type dependency in this browser-first package.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const emulatorHost = (globalThis as any).process?.env?.FIRESTORE_EMULATOR_HOST as string | undefined
+    if (emulatorHost && !emulatorConnected.has(this.db)) {
+      const [host, port] = emulatorHost.split(':')
+      connectFirestoreEmulator(this.db, host, parseInt(port, 10))
+      emulatorConnected.add(this.db)
+    }
 
     this.subscribeToFlags()
   }
@@ -78,8 +93,9 @@ export class FlagbaseClient {
     const flag = this.flags.get(flagKey)
     if (!flag) return
 
-    flagListeners.forEach((cb) => {
-      cb(flag.defaultValue)
+    flagListeners.forEach(({ callback, context }) => {
+      const { value } = this.evaluate(flagKey, context, flag.defaultValue)
+      callback(value)
     })
   }
 
@@ -95,10 +111,11 @@ export class FlagbaseClient {
     defaultValue: T
   ): EvaluatedFlag<T> {
     const flag = this.flags.get(flagKey)
-    if (!flag) {
-      return { value: defaultValue, reason: 'default' }
-    }
-    return evaluateFlag<T>(flag, context)
+    const result: EvaluatedFlag<T> = flag
+      ? evaluateFlag<T>(flag, context)
+      : { value: defaultValue, reason: 'default' }
+    this.config.onEvaluation?.(flagKey, result, context)
+    return result
   }
 
   /** Shorthand: get the flag value directly */
@@ -110,19 +127,24 @@ export class FlagbaseClient {
     return this.evaluate<T>(flagKey, context, defaultValue).value
   }
 
-  /** Subscribe to live value changes for a flag */
-  subscribe(flagKey: string, callback: (value: FlagValue) => void): () => void {
+  /** Subscribe to live value changes for a flag, re-evaluated against context on every update */
+  subscribe(
+    flagKey: string,
+    callback: (value: FlagValue) => void,
+    context: EvaluationContext = {}
+  ): () => void {
     if (!this.listeners.has(flagKey)) {
       this.listeners.set(flagKey, new Set())
     }
-    this.listeners.get(flagKey)!.add(callback)
+    const listener = { callback, context }
+    this.listeners.get(flagKey)!.add(listener)
 
-    // Immediately call with current value if available
+    // Immediately deliver the current evaluated value
     const flag = this.flags.get(flagKey)
-    if (flag) callback(flag.defaultValue)
+    if (flag) callback(this.evaluate(flagKey, context, flag.defaultValue).value)
 
     return () => {
-      this.listeners.get(flagKey)?.delete(callback)
+      this.listeners.get(flagKey)?.delete(listener)
     }
   }
 

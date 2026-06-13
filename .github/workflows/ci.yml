@@ -16,15 +16,26 @@ jobs:
           node-version: 20
           cache: pnpm
 
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
       - run: pnpm install --frozen-lockfile
 
       - name: Build shared types
         run: pnpm --filter @flagbase/types build
 
-      - name: Build and test SDK
-        run: |
-          pnpm --filter flagbase-sdk build
-          pnpm --filter flagbase-sdk test
+      - name: Build SDK
+        run: pnpm --filter flagbase-sdk build
+
+      - name: Unit tests
+        run: pnpm --filter flagbase-sdk test
+
+      - name: Integration tests (Firestore Emulator)
+        run: pnpm exec firebase emulators:exec --only firestore --project demo-flagbase "pnpm --filter flagbase-sdk run test:integration"
+        env:
+          FIREBASE_PROJECT_ID: demo-flagbase
 
       - name: Build React bindings
         run: pnpm --filter flagbase-react build

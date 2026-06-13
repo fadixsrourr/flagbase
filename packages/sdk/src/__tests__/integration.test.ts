@@ -13,12 +13,19 @@ import type { Flag } from '@flagbase/types'
 import { FlagbaseClient } from '../client'
 
 /**
- * End-to-end SDK test against a REAL Firestore project. Skipped unless
- * RUN_INTEGRATION=1 (and never in CI), so the normal unit suite stays offline.
+ * End-to-end SDK integration test. Runs in two modes:
  *
- * Run it manually with:
- *   RUN_INTEGRATION=1 pnpm --filter flagbase-sdk exec vitest run integration
+ * 1. Emulator (CI / preferred local): set FIRESTORE_EMULATOR_HOST=localhost:8080.
+ *    firebase emulators:exec handles this automatically. No real credentials needed.
+ *    `pnpm --filter flagbase-sdk run test:integration`
+ *
+ * 2. Real Firestore (manual local only): set RUN_INTEGRATION=1.
+ *    Loads apps/dashboard/.env for credentials. Never runs in CI.
+ *    `$env:RUN_INTEGRATION=1; pnpm --filter flagbase-sdk exec vitest run integration`
  */
+
+const usingEmulator = !!process.env.FIRESTORE_EMULATOR_HOST
+const usingRealFirestore = Boolean(process.env.RUN_INTEGRATION) && !process.env.CI
 
 function loadDashboardEnv(): void {
   const candidates = [
@@ -33,8 +40,6 @@ function loadDashboardEnv(): void {
     if (!match) continue
     const [, key, raw] = match
     if (process.env[key] !== undefined) continue
-    // Double-quoted values are JSON string literals — JSON.parse expands \n
-    // correctly (critical for the multiline service-account private key).
     process.env[key] = raw.startsWith('"') ? safeJsonParse(raw) : raw
   }
 }
@@ -47,22 +52,29 @@ function safeJsonParse(value: string): string {
   }
 }
 
-const shouldRun = Boolean(process.env.RUN_INTEGRATION) && !process.env.CI
-if (shouldRun) loadDashboardEnv()
+if (usingRealFirestore) loadDashboardEnv()
 
-const webConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-}
+const EMULATOR_PROJECT_ID = process.env.FIREBASE_PROJECT_ID ?? 'demo-flagbase'
+
+// Emulator: dummy config — emulator ignores API key / auth domain
+// Real Firestore: full web config from .env
+const webConfig = usingEmulator
+  ? { apiKey: 'emulator-key', projectId: EMULATOR_PROJECT_ID }
+  : {
+      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    }
 
 const hasCreds =
-  shouldRun &&
-  Boolean(webConfig.apiKey && webConfig.projectId) &&
-  Boolean(process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY)
+  (usingEmulator || usingRealFirestore) &&
+  (usingEmulator ||
+    (Boolean(webConfig.apiKey) &&
+      Boolean(process.env.FIREBASE_CLIENT_EMAIL) &&
+      Boolean(process.env.FIREBASE_PRIVATE_KEY)))
 
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
   return Promise.race([
@@ -98,7 +110,7 @@ function buildFlag(now: string): Flag {
   }
 }
 
-describe.runIf(hasCreds)('FlagbaseClient against real Firestore', () => {
+describe.runIf(hasCreds)('FlagbaseClient integration', () => {
   const projectId = `it-sdk-${Date.now()}`
   const environmentKey = 'development'
   const flagsPath = `projects/${projectId}/environments/${environmentKey}/flags`
@@ -109,14 +121,18 @@ describe.runIf(hasCreds)('FlagbaseClient against real Firestore', () => {
   let readyMs = Number.POSITIVE_INFINITY
 
   beforeAll(async () => {
+    // Emulator: no credentials required — FIRESTORE_EMULATOR_HOST is picked up
+    // automatically by the Admin SDK. Real Firestore: full service account cert.
     adminApp = adminInitializeApp(
-      {
-        credential: adminCert({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-        }),
-      },
+      usingEmulator
+        ? { projectId: EMULATOR_PROJECT_ID }
+        : {
+            credential: adminCert({
+              projectId: process.env.FIREBASE_PROJECT_ID,
+              clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+              privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+            }),
+          },
       'it-admin'
     )
     adminDb = adminGetFirestore(adminApp)
@@ -136,6 +152,7 @@ describe.runIf(hasCreds)('FlagbaseClient against real Firestore', () => {
     client = new FlagbaseClient(webConfig, { projectId, environmentKey, apiKey: 'unused' })
 
     const start = Date.now()
+    // Emulator snapshots arrive in <500ms; real Firestore (Node long-poll) up to ~3s.
     await withTimeout(client.waitUntilReady(), 6000, 'waitUntilReady')
     readyMs = Date.now() - start
   }, 30000)
@@ -168,9 +185,7 @@ describe.runIf(hasCreds)('FlagbaseClient against real Firestore', () => {
   it('propagates a disable via onSnapshot in real time', async () => {
     await adminDb.doc(`${flagsPath}/beta`).update({ enabled: false })
 
-    // In the browser Firestore uses WebChannel and updates land in well under a
-    // second; in Node it falls back to long-polling, so we allow a wider 5s
-    // window. The point is that the live listener reflects the change at all.
+    // Emulator delivers in <200ms; Node long-poll against real Firestore takes up to ~3s.
     const propagated = await pollUntil(
       () => client.evaluate('beta-banner', {}, true).reason === 'disabled',
       5000

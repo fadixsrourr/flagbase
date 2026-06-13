@@ -21,6 +21,7 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "test": "vitest run",
+    "test:integration": "vitest run src/__tests__/integration.test.ts",
     "test:watch": "vitest",
     "clean": "rm -rf dist"
   },

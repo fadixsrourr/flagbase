@@ -140,4 +140,5 @@ export interface FlagbaseConfig {
   projectId: string
   environmentKey: string
   apiKey: string
+  onEvaluation?: (key: string, result: EvaluatedFlag, context: EvaluationContext) => void
 }

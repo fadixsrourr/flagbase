@@ -5,6 +5,7 @@ allowBuilds:
   '@firebase/util': true
   esbuild: true
   protobufjs: true
+  re2: true
   sharp: true
 minimumReleaseAgeExclude:
   - '@turbo/darwin-64@2.9.18'

@@ -33,7 +33,7 @@ export function useFlags<T extends FlagDefaults>(
     setValues(evaluate())
 
     const unsubscribers = Object.keys(defaults).map((key) =>
-      client.subscribe(key, () => setValues(evaluate()))
+      client.subscribe(key, () => setValues(evaluate()), context)
     )
 
     return () => unsubscribers.forEach((unsub) => unsub())
