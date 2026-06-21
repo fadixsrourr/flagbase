@@ -78,19 +78,39 @@ const showNewDashboard = client.get('new-dashboard', { userId: user.id }, false)
 | `config.projectId` | `string` | FlagBase project id. |
 | `config.environmentKey` | `'development' \| 'staging' \| 'production'` | Which environment's flags to load. |
 | `config.apiKey` | `string` | The environment API key. |
+| `config.onEvaluation` | `(key, result, context) => void` | Optional. Fired on every `get()` / `evaluate()` call — use it to send flag exposures to any analytics provider. |
 
 ### Methods
 
 ```ts
-await client.waitUntilReady()                         // resolves after the first snapshot
+await client.waitUntilReady()                                    // resolves after the first snapshot
 
-client.get(key, context?, defaultValue)               // → the evaluated value
-client.evaluate(key, context?, defaultValue)          // → { value, reason, ruleId? }
-const unsub = client.subscribe(key, (value) => { })   // live updates; returns an unsubscribe fn
-client.destroy()                                       // tear down all listeners
+client.get(key, context?, defaultValue)                          // → the evaluated value
+client.evaluate(key, context?, defaultValue)                     // → { value, reason, ruleId? }
+const unsub = client.subscribe(key, (value) => { }, context?)   // live updates; re-evaluates with
+                                                                 //   the same context on every change
+client.destroy()                                                 // tear down all listeners
 ```
 
 `evaluate` returns a `reason` of `'disabled' | 'targeting_rule' | 'rollout' | 'default'`.
+
+### Exposure tracking with `onEvaluation`
+
+```ts
+const client = new FlagbaseClient(firebaseConfig, {
+  projectId,
+  environmentKey: 'production',
+  apiKey: 'fb_...',
+  onEvaluation: (key, result, context) => {
+    analytics.track('flag_evaluated', {
+      key,
+      value: result.value,
+      reason: result.reason,
+      ...context,
+    })
+  },
+})
+```
 
 ### Evaluation order
 
