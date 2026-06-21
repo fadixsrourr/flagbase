@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Panel } from '@/components/ui/Panel'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { useToast } from '@/components/ui/Toast'
 import { FlagForm } from './FlagForm'
 import { FlagTypeBadge } from './FlagsView'
 import { AuditList } from './AuditList'
@@ -23,10 +24,10 @@ export function FlagDetailView({
   flagId: string
 }) {
   const router = useRouter()
+  const toast = useToast()
   const { data: flag, isLoading, isError } = useFlag(projectId, env, flagId)
   const del = useDeleteFlag(projectId, env)
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const [saved, setSaved] = useState(false)
 
   if (isLoading) {
     return <div className="mx-auto h-96 max-w-2xl animate-pulse rounded-panel border border-line bg-surface/60" />
@@ -68,16 +69,8 @@ export function FlagDetailView({
         projectId={projectId}
         env={env}
         flag={flag}
-        onSaved={() => {
-          setSaved(true)
-          setTimeout(() => setSaved(false), 2500)
-        }}
+        onSaved={() => toast.success('Changes saved.')}
       />
-      {saved && (
-        <p className="text-right text-sm text-accent" role="status">
-          Changes saved.
-        </p>
-      )}
 
       <Panel>
         <div className="border-b border-line px-5 py-3.5">

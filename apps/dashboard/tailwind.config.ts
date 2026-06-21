@@ -33,6 +33,9 @@ const config: Config = {
           bright: token('accent-bright'),
           ink: token('accent-ink'),
         },
+        brand: {
+          navy: token('brand-navy'),
+        },
         danger: {
           DEFAULT: token('danger'),
           ink: token('danger-ink'),

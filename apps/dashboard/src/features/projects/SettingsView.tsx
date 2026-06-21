@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button'
 import { TextField } from '@/components/ui/TextField'
 import { CopyButton } from '@/components/ui/CopyButton'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { useToast } from '@/components/ui/Toast'
 import { useProject, useUpdateProject, useDeleteProject, useRegenerateApiKey } from './hooks'
 
 export function SettingsView({ projectId }: { projectId: string }) {
@@ -39,7 +40,7 @@ type NameForm = z.infer<typeof nameSchema>
 
 function ProjectNameSection({ projectId, project }: { projectId: string; project: Project }) {
   const update = useUpdateProject(projectId)
-  const [saved, setSaved] = useState(false)
+  const toast = useToast()
   const {
     register,
     handleSubmit,
@@ -48,8 +49,7 @@ function ProjectNameSection({ projectId, project }: { projectId: string; project
 
   async function onSubmit(values: NameForm) {
     await update.mutateAsync({ name: values.name })
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+    toast.success('Project name saved.')
   }
 
   return (
@@ -65,7 +65,6 @@ function ProjectNameSection({ projectId, project }: { projectId: string; project
           </Button>
         </div>
       </form>
-      {saved && <p className="text-sm text-accent">Saved.</p>}
       <p className="font-mono text-xs text-content-faint">slug: {project.slug}</p>
     </Panel>
   )

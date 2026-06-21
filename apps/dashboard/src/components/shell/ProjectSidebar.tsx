@@ -18,7 +18,7 @@ export function ProjectSidebar() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const env = searchParams.get('env') ?? 'development'
-  const { data: project } = useProject(projectId)
+  const { data: project, isLoading } = useProject(projectId)
 
   const nav = [
     { href: `/dashboard/${projectId}/flags`, label: 'Flags', icon: Flag },
@@ -44,7 +44,11 @@ export function ProjectSidebar() {
 
       <div className="flex flex-col gap-1">
         <span className="text-xs uppercase tracking-[0.16em] text-content-faint">Project</span>
-        <span className="truncate font-medium text-content">{project?.name ?? '—'}</span>
+        {isLoading ? (
+          <span className="h-5 w-32 animate-pulse rounded bg-surface-raised" aria-hidden />
+        ) : (
+          <span className="truncate font-medium text-content">{project?.name ?? '—'}</span>
+        )}
       </div>
 
       <div className="flex flex-col gap-2">

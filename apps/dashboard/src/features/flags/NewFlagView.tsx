@@ -3,10 +3,12 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft } from '@phosphor-icons/react'
+import { useToast } from '@/components/ui/Toast'
 import { FlagForm } from './FlagForm'
 
 export function NewFlagView({ projectId, env }: { projectId: string; env: string }) {
   const router = useRouter()
+  const toast = useToast()
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-7">
@@ -24,7 +26,10 @@ export function NewFlagView({ projectId, env }: { projectId: string; env: string
       <FlagForm
         projectId={projectId}
         env={env}
-        onSaved={(flag) => router.push(`/dashboard/${projectId}/flags/${flag.id}?env=${env}`)}
+        onSaved={(flag) => {
+          toast.success('Flag created.')
+          router.push(`/dashboard/${projectId}/flags/${flag.id}?env=${env}`)
+        }}
       />
     </div>
   )
